@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Goliath IKEA Tweak
+// @name         Goliath IKEA Tweaks
 // @version      0.1
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
