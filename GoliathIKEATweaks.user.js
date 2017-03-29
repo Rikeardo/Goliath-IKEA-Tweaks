@@ -91,6 +91,23 @@ if(url.includes("https://goliath.hypixel.net/staffchat"))
 // USERINFO
 if(url.includes("https://goliath.hypixel.net/userinfo?"))
 {
+    if(document.documentElement.innerHTML.includes("Oops! Server Error"))
+    {
+        if(cookie.includes("goliathError=")===false)
+        {
+            url += "+";
+            var nowError = new Date();
+            var timeError = nowError.getTime();
+            timeError += 10 * 1000;
+            nowError.setTime(timeError);
+            document.cookie = "goliathError=true;expires="+nowError+";path=/";
+            window.location.href = url;
+        }
+        else
+        {
+            document.cookie = "goliathError=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=";
+        }
+    }
     if(document.documentElement.innerHTML.includes("${player}"))
     {
         $('#content').contents().filter(function () {
