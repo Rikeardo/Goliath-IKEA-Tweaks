@@ -8,10 +8,14 @@
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @grant        GM_xmlhttpRequest
 // @connect      api.mojang.com
+// @connect      sessionserver.mojang.com
 // ==/UserScript==
 var url = window.location.href;
 var cookie = document.cookie;
 var timestamp = "1 Jan 2030 12:00:00 UTC";
+var offset = -4; // TIME COMPARED WITH GMT
+var backgroundColor = "";
+
 
 // FAVICON
 $("<link rel='icon' type='image/png' href='https://i.imgur.com/mS8hx5D.png'>").insertAfter("title:first");
@@ -20,7 +24,7 @@ $("<link rel='icon' type='image/png' href='https://i.imgur.com/mS8hx5D.png'>").i
 if(cookie.includes("themeBackgroundColor="))
 {
     var backgroundColorStart = cookie.indexOf("themeBackgroundColor=");
-    var backgroundColor = cookie.substring(backgroundColorStart+21,backgroundColorStart+27);
+    backgroundColor = cookie.substring(backgroundColorStart+21,backgroundColorStart+27);
     $("body").css("background-color","#"+backgroundColor);
     $("<style type='text/css'>body{background-color:#"+backgroundColor+";}</style>").insertAfter("body:first");
 }
@@ -30,10 +34,30 @@ if(cookie.includes("themeTextColor="))
     var textColor = cookie.substring(textColorStart+15,textColorStart+21);
     $("<style type='text/css'>.uk-navbar-nav>li>a{color:#"+textColor+";}</style>").insertAfter("body:first");
 }
-
+if(cookie.includes("themeBodyTextColor="))
+{
+    var textBodyColorStart = cookie.indexOf("themeBodyTextColor=");
+    var bodyTextColor = cookie.substring(textBodyColorStart+19,textBodyColorStart+25);
+    $("body").css("color","#"+bodyTextColor+"!important");
+    $("<style type='text/css'>body,h1,h2,h3,h4,h5,h6{color:#"+bodyTextColor+"!important;}</style>").insertAfter("body:first");
+    if(backgroundColor.length > 0)
+    {
+        console.log(textColor);
+        console.log(backgroundColor);
+        $("<style type='text/css'>.showAll:hover,.sendTheme:hover,.resetTheme:hover,.sendTextTheme:hover,.sendBackgroundTheme:hover,.sendBodyTextTheme:hover{background-color:#"+bodyTextColor+";color:#"+backgroundColor+";}.showAll,.sendTheme,.resetTheme,.sendTextTheme,.sendBackgroundTheme,.sendBodyTextTheme{border:1px solid #"+bodyTextColor+"!important;}</style>").insertAfter("body:first");
+    }
+    else
+    {
+        $("<style type='text/css'>.showAll:hover,.sendTheme:hover,.resetTheme:hover,.sendTextTheme:hover,.sendBackgroundTheme:hover,.sendBodyTextTheme:hover{background-color:#3B3738;color:#000;}.showAll,.sendTheme,.resetTheme,.sendTextTheme,.sendBackgroundTheme,.sendBodyTextTheme{border:1px solid #"+bodyTextColor+"!important;</style>").insertAfter("body:first");
+    }
+}
+else
+{
+    $("<style type='text/css'>.showAll:hover,.sendTheme:hover,.resetTheme:hover,.sendTextTheme:hover,.sendBackgroundTheme:hover,.sendBodyTextTheme:hover{background-color:#fff;color:#000;}</style>").insertAfter("body:first");
+}
 // CLOCK
 var clientDate = new Date();
-var serverDate = new Date(clientDate.getTime() + (clientDate.getTimezoneOffset() * 60000) + (3600000*-4));
+var serverDate = new Date(clientDate.getTime() + (clientDate.getTimezoneOffset() * 60000) + (3600000*offset));
 var hours = serverDate.getHours();
 var minutes = serverDate.getMinutes();
 var ampm = hours >= 12 ? 'pm' : 'am';
@@ -75,7 +99,46 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
             return this.nodeType === 3;
         }).remove();
         var searchedPlayer = url.substring(url.indexOf("=")+1,url.length);
+        while(searchedPlayer.includes("+")){searchedPlayer = searchedPlayer.replace("+","");}
         $("<p class='couldntFindUser'>Sorry couldn't find \""+searchedPlayer+"\"!</p>").insertAfter("#autocompleteChoices:first");
+        if(searchedPlayer.length > 16)
+        {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: 'https://sessionserver.mojang.com/session/minecraft/profile/'+searchedPlayer,
+                headers: {
+                    'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
+                    'Accept': 'application/atom+xml,application/xml,text/xml',
+                },
+                onload: function(responseDetails) {
+                    var mojangResponse = responseDetails.responseText;
+                    if(mojangResponse !== undefined && mojangResponse.includes("\"name\""))
+                    {
+                        $("<p class='neverJoined' style='margin-bottom:5px;'class='foundUUIDUser'>Seems like that player never joined Hypixel...</p><img class='UUIDnotJoined' src='http://i.imgur.com/f9zRr2U.gif'>").insertAfter(".couldntFindUser:first");
+                    }
+                }
+            });
+        }
+        else
+        {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: 'https://api.mojang.com/users/profiles/minecraft/'+searchedPlayer,
+                headers: {
+                    'User-agent': 'Mozilla/4.0 (compatible) Greasemonkey',
+                    'Accept': 'application/atom+xml,application/xml,text/xml',
+                },
+                onload: function(responseDetails) {
+                    var mojangResponse = responseDetails.responseText;
+                    if(mojangResponse !== undefined && mojangResponse.includes("\"name\""))
+                    {
+                        var mojangAnswer = mojangResponse.substring(mojangResponse.indexOf("\"id\"")+6);
+                        var mojangUUID = mojangAnswer.substring(0,mojangAnswer.indexOf("\""));
+                        $("<p class='foundMojangUser'>Found a player using that name: <a href='https://goliath.hypixel.net/userinfo?uuid="+mojangUUID+"'>"+mojangUUID+"</a>.</p>").insertAfter(".couldntFindUser:first");
+                    }
+                }
+            });
+        }
     }
     else
     {
@@ -141,13 +204,16 @@ if(url.includes("https://goliath.hypixel.net/profile"))
 {
     $('.color-option').remove();
     $("#colorSelector").html("<div class='color-option' style='background:#E74C3C;' onclick='document.cookie = \"backgroundColor=E74C3C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#F2784B;' onclick='document.cookie = \"backgroundColor=F2784B; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#E9E581;' onclick='document.cookie = \"backgroundColor=E9E581; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#FDE3A7;' onclick='document.cookie = \"backgroundColor=FDE3A7; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#ECECEC;' onclick='document.cookie = \"backgroundColor=ECECEC; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#87D37C;' onclick='document.cookie = \"backgroundColor=87D37C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#81CFE0;' onclick='document.cookie = \"backgroundColor=81CFE0; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#19B5FE;' onclick='document.cookie = \"backgroundColor=19B5FE; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#BE90D4;' onclick='document.cookie = \"backgroundColor=BE90D4; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#000000;' onclick='document.cookie = \"backgroundColor=000000; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div>");
-    $("<p style='margin: 10px 0 2.5px 0;'>Choose your own theme color: (HEX)</p> <input class='themeColor' style='margin: 2.5px 0 10px 0;' type='text' maxlength='6'><div class='themeButtons' style='display:flex;flex-direction:row;margin-bottom:30px;'><div class='sendTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 0;border: 1px solid white;font-size:90%;border-radius:4px;width: 110px;'>Select theme</div><div class='resetTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 8px;border: 1px solid white;font-size:90%;border-radius:4px;width: 110px;' onclick='document.cookie = \"backgroundColor=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'>Reset theme</div></div><h3 class='textColorTitle'>TEXT COLOR</h3>").insertAfter("#colorSelector:first");
+    $("<p style='margin: 10px 0 2.5px 0;'>Choose your own theme color: (HEX)</p> <input class='themeColor' style='margin: 2.5px 0 10px 0;' type='text' maxlength='6'><div class='themeButtons' style='display:flex;flex-direction:row;margin-bottom:30px;'><div class='sendTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 0;border: 1px solid white;font-size:90%;border-radius:4px;width: 110px;'>Select theme</div><div class='resetTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 8px;border: 1px solid white;font-size:90%;border-radius:4px;width: 110px;' onclick='document.cookie = \"backgroundColor=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'>Reset theme</div></div><h3 class='textColorTitle'>NAVIGATION TEXT COLOR</h3>").insertAfter("#colorSelector:first");
     $("<div class='textSelector' id='colorSelector'> <div class='color-option' style='background:#E74C3C;' onclick='document.cookie = \"themeTextColor=E74C3C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#F2784B;' onclick='document.cookie = \"themeTextColor=F2784B; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#E9E581;' onclick='document.cookie = \"themeTextColor=E9E581; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#FDE3A7;' onclick='document.cookie = \"themeTextColor=FDE3A7; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#ECECEC;' onclick='document.cookie = \"themeTextColor=ECECEC; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#87D37C;' onclick='document.cookie = \"themeTextColor=87D37C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#81CFE0;' onclick='document.cookie = \"themeTextColor=81CFE0; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#19B5FE;' onclick='document.cookie = \"themeTextColor=19B5FE; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#BE90D4;' onclick='document.cookie = \"themeTextColor=BE90D4; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#000000;' onclick='document.cookie = \"themeTextColor=000000; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div></div>").insertAfter(".textColorTitle");
     $("<p style='margin: 10px 0 2.5px 0;'>Choose your own text color: (HEX)</p> <input class='textColor' style='margin: 2.5px 0 10px 0;' type='text' maxlength='6'><div class='themeButtons' id='themeButtonText' style='display:flex;flex-direction:row;margin-bottom:30px;'><div class='sendTextTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 0;border: 1px solid white;font-size:90%;border-radius:4px;width: 130px;'>Select text theme</div><div class='resetTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 8px;border: 1px solid white;font-size:90%;border-radius:4px;width: 130px;' onclick='document.cookie = \"themeTextColor=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'>Reset text theme</div></div>").insertAfter(".textSelector");
-    $("<h3>BACKGROUND COLOR</h3><p style='margin: 10px 0 2.5px 0;'>Choose your own background color: (HEX)</p> <input class='backgroundColor' style='margin: 2.5px 0 10px 0;' type='text' maxlength='6'><div class='themeButtons' style='display:flex;flex-direction:row;'><div class='sendBackgroundTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 0;border: 1px solid white;font-size:90%;border-radius:4px;width: 180px;'>Select background theme</div><div class='resetTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 8px;border: 1px solid white;font-size:90%;border-radius:4px;width: 180px;' onclick='document.cookie = \"themeBackgroundColor=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'>Reset background theme</div></div>").insertAfter("#themeButtonText");
+    $("<h3>BACKGROUND COLOR</h3><div class='backgroundSelector' id='colorSelector'> <div class='color-option' style='background:#E74C3C;' onclick='document.cookie = \"themeBackgroundColor=E74C3C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#F2784B;' onclick='document.cookie = \"themeBackgroundColor=F2784B; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#E9E581;' onclick='document.cookie = \"themeBackgroundColor=E9E581; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#FDE3A7;' onclick='document.cookie = \"themeBackgroundColor=FDE3A7; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#ECECEC;' onclick='document.cookie = \"themeBackgroundColor=ECECEC; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#87D37C;' onclick='document.cookie = \"themeBackgroundColor=87D37C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#81CFE0;' onclick='document.cookie = \"themeBackgroundColor=81CFE0; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#19B5FE;' onclick='document.cookie = \"themeBackgroundColor=19B5FE; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#BE90D4;' onclick='document.cookie = \"themeBackgroundColor=BE90D4; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#000000;' onclick='document.cookie = \"themeBackgroundColor=000000; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div></div><p style='margin: 10px 0 2.5px 0;'>Choose your own background color: (HEX)</p> <input class='backgroundColor' style='margin: 2.5px 0 10px 0;' type='text' maxlength='6'><div class='themeButtons' id='backgroundColor' style='display:flex;flex-direction:row;margin-bottom:30px;'><div class='sendBackgroundTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 0;border: 1px solid white;font-size:90%;border-radius:4px;width: 180px;'>Select background theme</div><div class='resetTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 8px;border: 1px solid white;font-size:90%;border-radius:4px;width: 180px;' onclick='document.cookie = \"themeBackgroundColor=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'>Reset background theme</div></div>").insertAfter("#themeButtonText");
+    $("<h3>TEXT COLOR</h3><div class='bodyTextSelector' id='colorSelector'> <div class='color-option' style='background:#E74C3C;' onclick='document.cookie = \"themeBodyTextColor=E74C3C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#F2784B;' onclick='document.cookie = \"themeBodyTextColor=F2784B; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#E9E581;' onclick='document.cookie = \"themeBodyTextColor=E9E581; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#FDE3A7;' onclick='document.cookie = \"themeBodyTextColor=FDE3A7; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#ECECEC;' onclick='document.cookie = \"themeBodyTextColor=ECECEC; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#87D37C;' onclick='document.cookie = \"themeBodyTextColor=87D37C; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#81CFE0;' onclick='document.cookie = \"themeBodyTextColor=81CFE0; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#19B5FE;' onclick='document.cookie = \"themeBodyTextColor=19B5FE; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#BE90D4;' onclick='document.cookie = \"themeBodyTextColor=BE90D4; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div><div class='color-option' style='background:#000000;' onclick='document.cookie = \"themeBodyTextColor=000000; expires="+timestamp+";path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'><div class='display'></div></div></div>").insertAfter("#backgroundColor");
+    $("<p style='margin: 10px 0 2.5px 0;'>Choose your own text color: (HEX)</p> <input class='bodyTextColor' style='margin: 2.5px 0 10px 0;' type='text' maxlength='6'><div class='themeButtons' id='themeButtonText' style='display:flex;flex-direction:row;'><div class='sendBodyTextTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 0;border: 1px solid white;font-size:90%;border-radius:4px;width: 130px;'>Select text theme</div><div class='resetTheme' style='height: 25px;display:flex;flex-direction:colum;justify-content:center;align-items:center;cursor:pointer;margin: 2.5px 0 0 8px;border: 1px solid white;font-size:90%;border-radius:4px;width: 130px;' onclick='document.cookie = \"themeBodyTextColor=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=\"; window.location.href = \"https://goliath.hypixel.net/profile\"'>Reset text theme</div></div>").insertAfter(".bodyTextSelector");
     document.getElementsByClassName('sendTheme')[0].addEventListener('click', changeThemeColor, false);
     document.getElementsByClassName('sendTextTheme')[0].addEventListener('click', changeTextThemeColor, false);
     document.getElementsByClassName('sendBackgroundTheme')[0].addEventListener('click', changeBackgroundThemeColor, false);
+    document.getElementsByClassName('sendBodyTextTheme')[0].addEventListener('click', changeBodyTextThemeColor, false);
 }
 function changeThemeColor()
 {
@@ -157,6 +223,10 @@ function changeThemeColor()
     {
         document.cookie = "backgroundColor="+themeColor+";expires="+timestamp+";path=/";
         window.location.href = "https://goliath.hypixel.net/profile";
+    }
+    else
+    {
+        alert("You inputted an invalid color (#"+themeColor+")");
     }
 }
 function changeTextThemeColor()
@@ -168,6 +238,10 @@ function changeTextThemeColor()
         document.cookie = "themeTextColor="+textColor+";expires="+timestamp+";path=/";
         window.location.href = "https://goliath.hypixel.net/profile";
     }
+    else
+    {
+        alert("You inputted an invalid color (#"+textColor+")");
+    }
 }
 function changeBackgroundThemeColor()
 {
@@ -177,6 +251,24 @@ function changeBackgroundThemeColor()
     {
         document.cookie = "themeBackgroundColor="+backgroundColor+";expires="+timestamp+";path=/";
         window.location.href = "https://goliath.hypixel.net/profile";
+    }
+    else
+    {
+        alert("You inputted an invalid color (#"+backgroundColor+")");
+    }
+}
+function changeBodyTextThemeColor()
+{
+    var bodyTextColor = document.getElementsByClassName("bodyTextColor")[0].value;
+    var bodyTextColorOk  = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test("#"+bodyTextColor);
+    if(bodyTextColorOk)
+    {
+        document.cookie = "themeBodyTextColor="+bodyTextColor+";expires="+timestamp+";path=/";
+        window.location.href = "https://goliath.hypixel.net/profile";
+    }
+    else
+    {
+        alert("You inputted an invalid color (#"+bodyTextColor+")");
     }
 }
 //  PROFILE
@@ -231,7 +323,6 @@ if(url.includes("https://goliath.hypixel.net/home"))
 }
 
 // MISC
-$("<style type='text/css'>.showAll:hover,.sendTheme:hover,.resetTheme:hover,.sendTextTheme:hover,.sendBackgroundTheme:hover{background-color:#fff;color:#000;}</style>").insertAfter("body:first");
 
 var version = 0.1;
 var request = new XMLHttpRequest();
