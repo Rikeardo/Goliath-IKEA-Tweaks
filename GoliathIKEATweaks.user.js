@@ -42,8 +42,6 @@ if(cookie.includes("themeBodyTextColor="))
     $("<style type='text/css'>body,h1,h2,h3,h4,h5,h6{color:#"+bodyTextColor+"!important;}</style>").insertAfter("body:first");
     if(backgroundColor.length > 0)
     {
-        console.log(textColor);
-        console.log(backgroundColor);
         $("<style type='text/css'>.showAll:hover,.sendTheme:hover,.resetTheme:hover,.sendTextTheme:hover,.sendBackgroundTheme:hover,.sendBodyTextTheme:hover{background-color:#"+bodyTextColor+";color:#"+backgroundColor+";}.showAll,.sendTheme,.resetTheme,.sendTextTheme,.sendBackgroundTheme,.sendBodyTextTheme{border:1px solid #"+bodyTextColor+"!important;}</style>").insertAfter("body:first");
     }
     else
