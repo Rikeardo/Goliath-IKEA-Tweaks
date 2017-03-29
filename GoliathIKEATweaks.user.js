@@ -26,7 +26,8 @@ if(cookie.includes("themeBackgroundColor="))
     var backgroundColorStart = cookie.indexOf("themeBackgroundColor=");
     backgroundColor = cookie.substring(backgroundColorStart+21,backgroundColorStart+27);
     $("body").css("background-color","#"+backgroundColor);
-    $("<style type='text/css'>body{background-color:#"+backgroundColor+";}</style>").insertAfter("body:first");
+    $("html").css("background-color","#"+backgroundColor);
+    $("<style type='text/css'>body,html{background-color:#"+backgroundColor+";}</style>").insertAfter("body:first");
 }
 if(cookie.includes("themeTextColor="))
 {
