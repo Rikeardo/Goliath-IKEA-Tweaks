@@ -119,6 +119,7 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
         }).remove();
         var searchedPlayer = url.substring(url.indexOf("=")+1,url.length);
         while(searchedPlayer.includes("+")){searchedPlayer = searchedPlayer.replace("+","");}
+        while(searchedPlayer.includes("-")){searchedPlayer = searchedPlayer.replace("-","");}
         $("<p class='couldntFindUser'>Sorry couldn't find \""+searchedPlayer+"\"!</p>").insertAfter("#autocompleteChoices:first");
         if(searchedPlayer.length > 16)
         {
