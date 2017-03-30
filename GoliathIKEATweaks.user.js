@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Goliath IKEA Tweaks
-// @version      0.2
+// @version      0.2.1
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
 // @icon         https://i.imgur.com/mS8hx5D.png
@@ -137,7 +137,7 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
     {
         document.cookie = "goliathError=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=";
     }
-    if(document.documentElement.innerHTML.includes("${player}"))
+    if(document.documentElement.innerHTML.includes("Sorry, I couldn't find"))
     {
         $('#content').contents().filter(function () {
             return this.nodeType === 3;
@@ -146,7 +146,7 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
         while(searchedPlayer.includes("+")){searchedPlayer = searchedPlayer.replace("+","");}
         while(searchedPlayer.includes("-")){searchedPlayer = searchedPlayer.replace("-","");}
         $("<p class='couldntFindUser'>Sorry couldn't find \""+searchedPlayer+"\"!</p>").insertAfter("#autocompleteChoices:first");
-        if(searchedPlayer.length > 16)
+        if(searchedPlayer.length > 16 && cookie.includes("couldntFind")===false)
         {
             GM_xmlhttpRequest({
                 method: 'GET',
@@ -166,6 +166,7 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
         }
         else
         {
+            document.cookie = "couldntFind=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=";
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: 'https://api.mojang.com/users/profiles/minecraft/'+searchedPlayer,
@@ -187,6 +188,7 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
     }
     else
     {
+        document.cookie = "couldntFind=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=";
         $('#cape').remove();
         var username = /([A-Za-z0-9_]{1,16})$/.exec($("#columnx > font:first-of-type").text())[1];
         $("<img id='optifineCape' style='margin: 20px;' width='40%' src=" + "http://s.optifine.net/capes/" + username + ".png" + " onerror=this.style.display='none'>").insertAfter("img");
@@ -410,7 +412,7 @@ if(url.includes("https://goliath.hypixel.net/home"))
 
 $("<style type='text/css'>.uk-table-striped tbody tr:nth-of-type(odd){background-color:rgba(255,255,255,0.1)!important;}</style>").insertAfter("body:first");
 
-var version = 0.2;
+var version = 0.21;
 var request = new XMLHttpRequest();
 request.onreadystatechange = function() {
     if (request.readyState == XMLHttpRequest.DONE) {
