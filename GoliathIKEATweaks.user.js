@@ -27,6 +27,10 @@ if(cookie.includes("themeBackgroundColor="))
 {
     var backgroundColorStart = cookie.indexOf("themeBackgroundColor=");
     backgroundColor = cookie.substring(backgroundColorStart+21,backgroundColorStart+27);
+    if(backgroundColor.includes(";"))
+    {
+        backgroundColor = backgroundColor.substring(0,backgroundColor.indexOf(";"));
+    }
     $("body").css("background-color","#"+backgroundColor);
     $("html").css("background-color","#"+backgroundColor);
     $("<style type='text/css'>body,html{background-color:#"+backgroundColor+"!important;}</style>").insertAfter("body:first");
@@ -35,12 +39,20 @@ if(cookie.includes("themeTextColor="))
 {
     var textColorStart = cookie.indexOf("themeTextColor=");
     textColor = cookie.substring(textColorStart+15,textColorStart+21);
+    if(textColor.includes(";"))
+    {
+        textColor = textColor.substring(0,textColor.indexOf(";"));
+    }
     $("<style type='text/css'>.uk-navbar-nav>li>a{color:#"+textColor+";}</style>").insertAfter("body:first");
 }
 if(cookie.includes("themeBodyTextColor="))
 {
     var textBodyColorStart = cookie.indexOf("themeBodyTextColor=");
     bodyTextColor = cookie.substring(textBodyColorStart+19,textBodyColorStart+25);
+    if(bodyTextColor.includes(";"))
+    {
+        bodyTextColor = bodyTextColor.substring(0,bodyTextColor.indexOf(";"));
+    }
     $("body").css("color","#"+bodyTextColor+"!important");
     $("<style type='text/css'>body,h1,h2,h3,h4,h5,h6{color:#"+bodyTextColor+"!important;}</style>").insertAfter("body:first");
     if(backgroundColor.length > 0)
@@ -60,6 +72,10 @@ if(cookie.includes("backgroundColor="))
 {
     var navColorStart = cookie.indexOf("backgroundColor=");
     navColor = cookie.substring(navColorStart+16,navColorStart+22);
+    if(navColor.includes(";"))
+    {
+        navColor = navColor.substring(0,navColor.indexOf(";"));
+    }
 }
 
 // CLOCK
