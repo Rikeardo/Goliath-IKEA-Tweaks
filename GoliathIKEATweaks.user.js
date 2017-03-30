@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Goliath IKEA Tweaks
-// @version      0.2.1
+// @version      0.2.2
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
 // @icon         https://i.imgur.com/mS8hx5D.png
@@ -407,12 +407,19 @@ if(url.includes("https://goliath.hypixel.net/home"))
 
 }
 
+//  WELCOMER
+if(url.includes("https://goliath.hypixel.net/welcomer"))
+{
+    $("<style type='text/css'>.uk-table{width:0!important;}</style>").insertAfter("body:first");
+}
+
+
 // MISC
 
 
 $("<style type='text/css'>.uk-table-striped tbody tr:nth-of-type(odd){background-color:rgba(255,255,255,0.1)!important;}</style>").insertAfter("body:first");
 
-var version = 0.21;
+var version = 0.22;
 var request = new XMLHttpRequest();
 request.onreadystatechange = function() {
     if (request.readyState == XMLHttpRequest.DONE) {
