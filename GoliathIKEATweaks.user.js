@@ -207,6 +207,7 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
         $('#bodyFront').css("width","20%");
         var username = /([A-Za-z0-9_]{1,16})$/.exec($("#columnx > font:first-of-type").text())[1];
         $("<img id='optifineCape' style='margin: 20px;' width='40%' src=" + "http://s.optifine.net/capes/" + username + ".png" + " onerror=this.style.display='none'>").insertAfter("#bodyBack");
+        setTimeout(function(){ $('#cape').remove(); }, 500);
     }
 }
 if(url.includes("https://goliath.hypixel.net/userinfo"))
