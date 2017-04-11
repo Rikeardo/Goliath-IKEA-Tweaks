@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Goliath IKEA Tweaks
-// @version      0.2.4
+// @version      0.2.5
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
 // @icon         https://i.imgur.com/mS8hx5D.png
@@ -19,7 +19,7 @@ var textColor = "444";
 var bodyTextColor = "FFF";
 var navColor = "87D37C";
 
-var version = 0.24;
+var version = 0.25;
 var request = new XMLHttpRequest();
 request.onreadystatechange = function() {
     if (request.readyState == XMLHttpRequest.DONE) {
@@ -203,8 +203,6 @@ if(url.includes("https://goliath.hypixel.net/userinfo?"))
     else
     {
         $('#cape').remove();
-        $('#bodyBack').css("width","20%");
-        $('#bodyFront').css("width","20%");
         var username = /([A-Za-z0-9_]{1,16})$/.exec($("#columnx > font:first-of-type").text())[1];
         $("<img id='optifineCape' style='margin: 20px;' width='40%' src=" + "http://s.optifine.net/capes/" + username + ".png" + " onerror=this.style.display='none'>").insertAfter("#bodyBack");
         setTimeout(function(){ $('#cape').remove(); }, 500);
