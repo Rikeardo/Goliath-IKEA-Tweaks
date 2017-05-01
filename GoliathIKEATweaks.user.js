@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Goliath IKEA Tweaks
-// @version      0.2.5
+// @version      0.2.6
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
 // @icon         https://i.imgur.com/mS8hx5D.png
@@ -19,7 +19,7 @@ var textColor = "444";
 var bodyTextColor = "FFF";
 var navColor = "87D37C";
 
-var version = 0.25;
+var version = 0.26;
 var request = new XMLHttpRequest();
 request.onreadystatechange = function() {
     if (request.readyState == XMLHttpRequest.DONE) {
@@ -371,10 +371,11 @@ function changeBodyTextThemeColor()
     }
 }
 //  PROFILE
+var imageTimes = 0;
 if(cookie.includes("minecraftUUID="))
 {
     var nameAndUUID = cookie.substring(cookie.indexOf("minecraftUUID=")+14,cookie.indexOf("¤$¤")).split(",");
-    $("<div class='profileNew' style='height:60px;line-height:60px;font-sixe:15px;padding:0 10px;' onclick='window.location.href=\"\profile\"'><img class='headImage' src=\"\" style='margin-right:15px;'>"+nameAndUUID[0]+"</div>").insertAfter(".uk-icon-user:first");
+    $("<div class='profileNew' style='height:60px;line-height:60px;font-sixe:15px;padding:0;' onclick='window.location.href=\"\profile\"'><img class='headImage' src=\"\" style='margin-right:8px;'>"+nameAndUUID[0]+"</div>").insertAfter(".uk-icon-user:first");
     $('.uk-icon-user:first').remove();
     var parentElement = document.querySelectorAll("a[href='/profile']");
     $(parentElement).contents().filter(function () {
@@ -382,12 +383,18 @@ if(cookie.includes("minecraftUUID="))
     }).remove();
     dataImage = localStorage.getItem('headImage');
     bannerImg = document.getElementsByClassName('headImage')[0];
-    bannerImg.src = dataImage;
+    console.log(imageTimes);
+    if(imageTimes == 0)
+    {
+        bannerImg.src = dataImage;
+        imageTimes = 1;
+    }
+
 }
 //   NAME
 if(url.includes("https://goliath.hypixel.net/home"))
 {
-    var mcNameUncut = document.getElementsByClassName("uk-width-1-3")[0].innerHTML;
+    var mcNameUncut = document.getElementsByClassName("uk-width-1-1")[0].innerHTML;
     var mcName = mcNameUncut.substring(mcNameUncut.indexOf("Welcome, ")+9,mcNameUncut.indexOf("!"));
     GM_xmlhttpRequest({
         method: 'GET',
@@ -411,7 +418,7 @@ if(url.includes("https://goliath.hypixel.net/home"))
                     };
                     reader.readAsDataURL(imageRequest.response);
                 };
-                imageRequest.open('GET', 'https://crafatar.com/avatars/'+mojangUUID+'?size=25');
+                imageRequest.open('GET', 'https://visage.surgeplay.com/face/32/'+mojangUUID);
                 imageRequest.responseType = 'blob';
                 imageRequest.send();
                 document.cookie = "minecraftUUID="+mcName+","+mojangUUID+"¤$¤"+";expires="+timestamp+";path=/";
