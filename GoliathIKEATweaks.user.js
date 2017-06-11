@@ -19,7 +19,7 @@ var textColor = "444";
 var bodyTextColor = "FFF";
 var navColor = "87D37C";
 console.log(url);
-var version = 0.26;
+var version = 0.27;
 var request = new XMLHttpRequest();
 request.onreadystatechange = function() {
     if (request.readyState == XMLHttpRequest.DONE) {
