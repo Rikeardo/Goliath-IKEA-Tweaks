@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Goliath IKEA Tweaks
-// @version      0.2.6
+// @version      0.2.7
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
 // @icon         https://i.imgur.com/mS8hx5D.png
