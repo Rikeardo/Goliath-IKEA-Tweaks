@@ -623,15 +623,15 @@ if(url == "https://goliath.hypixel.net/chatreports")
             numberOfMonths = (year2 - year1) * 12 + (month2 - month1);
             if(ban.active == true)
             {
-                mutesHtml += "<b>ACTIVE</b></br>"+ban.timestamp + "<br />" + ban.duration + "<br />" + ban.reason + "<br /><br />";
+                mutesHtml += "<b>ACTIVE</b></br>"+ban.timestamp + "<br />" + (ban.duration != null ? ban.duration : ban.type) + "<br />" + ban.reason + "<br /><br />";
             }
             else if(numberOfMonths >= 18)
             {
-                mutesHtml += "<font color='#abafb5'>"+ban.timestamp + "<br />" + ban.duration + "<br />" + ban.reason + "<br /><br /></font>";
+                mutesHtml += "<font color='#abafb5'>"+ban.timestamp + "<br />" + (ban.duration != null ? ban.duration : ban.type) + "<br />" + ban.reason + "<br /><br /></font>";
             }
             else
             {
-                mutesHtml += ban.timestamp + "<br />" + ban.duration + "<br />" + ban.reason + "<br /><br />";
+                mutesHtml += ban.timestamp + "<br />" + (ban.duration != null ? ban.duration : ban.type) + "<br />" + ban.reason + "<br /><br />";
             }
         }
         if (data.bans.length === 0) {
