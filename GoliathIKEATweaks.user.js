@@ -575,18 +575,18 @@ if(url == "https://goliath.hypixel.net/chatreports")
 
         for (var i = 0; i < data.mutes.length; i++) {
             var mute = data.mutes[i];
-            var date1=new Date(mute.timestamp);//Remember, months are 0 based in JS
+            var date1=new Date(mute.timestamp);
             var date2=new Date();
             var year1=date1.getFullYear();
             var year2=date2.getFullYear();
             var month1=date1.getMonth();
             var month2=date2.getMonth();
-            if(month1===0){ //Have to take into account
+            if(month1===0)
+            {
                 month1++;
                 month2++;
             }
-            var numberOfMonths;
-            numberOfMonths = (year2 - year1) * 12 + (month2 - month1);
+            var numberOfMonths = (year2 - year1) * 12 + (month2 - month1);
             if(mute.active == true)
             {
                 mutesHtml += "<b>ACTIVE</b></br>"+mute.timestamp + "<br />" + mute.duration + "<br />" + mute.reason + "<br /><br />";
@@ -619,8 +619,7 @@ if(url == "https://goliath.hypixel.net/chatreports")
                 month1++;
                 month2++;
             }
-            var numberOfMonths;
-            numberOfMonths = (year2 - year1) * 12 + (month2 - month1);
+            var numberOfMonths = (year2 - year1) * 12 + (month2 - month1);
             if(ban.active == true)
             {
                 mutesHtml += "<b>ACTIVE</b></br>"+ban.timestamp + "<br />" + (ban.duration != null ? ban.duration : ban.type) + "<br />" + ban.reason + "<br /><br />";
