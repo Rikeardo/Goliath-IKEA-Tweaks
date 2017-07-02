@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Goliath IKEA Tweaks
-// @version      0.2.7
+// @version      0.2.8
 // @description  Additions / changes to Goliath
 // @author       _Rikardo_
 // @icon         https://i.imgur.com/mS8hx5D.png
@@ -19,7 +19,7 @@ var textColor = "444";
 var bodyTextColor = "FFF";
 var navColor = "87D37C";
 console.log(url);
-var version = 0.27;
+var version = 0.28;
 var request = new XMLHttpRequest();
 request.onreadystatechange = function() {
     if (request.readyState == XMLHttpRequest.DONE) {
